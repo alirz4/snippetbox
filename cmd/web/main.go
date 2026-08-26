@@ -1,11 +1,17 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 )
 
 func main() {
+	// command-line flag, args: flag name, default value, short description
+	addr := flag.String("addr", ":4000", "HTTP network address")
+
+	flag.Parse()
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /{$}", home)
@@ -16,7 +22,8 @@ func main() {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
-	log.Print("Starting server on :4000")
-	err := http.ListenAndServe(":4000", mux)
+	// addr is a pointer, in order to get the value of it we use *addr
+	log.Printf("Starting server on %s", *addr)
+	err := http.ListenAndServe(*addr, mux)
 	log.Fatal(err)
 }
