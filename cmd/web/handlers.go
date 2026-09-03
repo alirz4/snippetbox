@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -17,39 +16,18 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 		return
 	}
-	for _, snippet := range snippets {
-		fmt.Fprintf(w, "%+v\n", snippet)
-	}
-	//	files := []string{
-	//		"./ui/html/base.tmpl",
-	//		"./ui/html/pages/home.tmpl",
-	//		"./ui/html/partials/nav.tmpl",
-	//	}
 
-	// ts, err := template.ParseFiles(files...)
-	//
-	//	if err != nil {
-	//		app.serverError(w, r, err)
-	//		return
-	//	}
-	//
-	// err = ts.ExecuteTemplate(w, "base", nil)
-	//
-	//	if err != nil {
-	//		app.serverError(w, r, err)
-	//	}
+	data := app.newTemplateData(r)
+	data.Snippets = snippets
+
+	// Use the new render helper.
+	app.render(w, r, http.StatusOK, "home.tmpl", data)
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
-		/*
-		* In Go, helper functions like http.NotFound(w, r) or http.Error(...) do two things:
-		*They set the HTTP status code (like 404 Not Found or 500 Internal Server Error).
-		*They write the text of the error message to the response body.
-		 */
 		http.NotFound(w, r)
-		// If we dont return it wont stop executing even after http.NotFound, it acts like everything went fine
 		return
 	}
 	snippet, err := app.snippets.Get(id)
@@ -61,22 +39,10 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	files := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/view.tmpl",
-	}
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, r, err)
-	}
-	data := templateData{
-		Snippet: snippet,
-	}
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, r, err)
-	}
+	data := app.newTemplateData(r)
+	data.Snippet = snippet
+	// Use the new render helper.
+	app.render(w, r, http.StatusOK, "view.tmpl", data)
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
