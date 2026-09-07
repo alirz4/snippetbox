@@ -13,6 +13,7 @@ type templateData struct {
 	Snippets    []models.Snippet
 	CurrentYear int
 	Form        any
+	Flash       string
 }
 
 // Create a humanDate function which returns a nicely formatted string
